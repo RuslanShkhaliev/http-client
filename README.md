@@ -129,7 +129,7 @@ httpClient.hooks.afterResponse.remove(loggerHook)
 #### logger
 Тип `ILogger`\
 Примечание:
-- это обязательный параметр, если не передать - будет ошибка
+- необязательный параметр
 
 #### cacheService
 Тип `CacheService`\
