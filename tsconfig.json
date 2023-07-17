@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": ".",
+    "lib": [
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "target": "ES2016",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": false,
+    "moduleResolution": "Node",
+    "suppressImplicitAnyIndexErrors": true
+  },
+  "types": [
+    "node",
+  ],
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "node_modules",
+    "*/**/*.test.ts",
+    "**/dist"
+  ]
+
+}
