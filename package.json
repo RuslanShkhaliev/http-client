@@ -19,7 +19,7 @@
       }
     }
   },
-  "repository": "https://github.com/RuslanShkhaliev/invest-project",
+  "repository": "https://github.com/RuslanShkhaliev/http-client",
   "files": [
     "dist/"
   ],
