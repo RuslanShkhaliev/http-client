@@ -1,8 +1,8 @@
 // eslint-disable-next-line max-classes-per-file
 import {
     FetchRequest,
-    IsomorphicRequest,
-    IsomorphicResponse,
+    IsoRequest,
+    IsoResponse,
 } from './types';
 
 export class HTTPError extends Error {
@@ -13,13 +13,13 @@ export class HTTPError extends Error {
         404: 'NotFound',
     };
 
-    public response: IsomorphicResponse;
+    public response: IsoResponse;
 
     public request: FetchRequest;
 
     public statusCode?: number | string;
 
-    constructor(response: IsomorphicResponse, request: FetchRequest) {
+    constructor(response: IsoResponse, request: FetchRequest) {
         const code = (response.status ?? response.status === 0) ? response.status : '';
 
         super();
@@ -41,7 +41,7 @@ export class TimeoutError extends Error {
     }
 }
 export class CancelRequest extends Error {
-    public request: IsomorphicRequest;
+    public request: IsoRequest;
 
     constructor(request: any) {
         super('Запрос был отменен');
