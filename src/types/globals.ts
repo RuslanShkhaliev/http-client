@@ -1,4 +1,9 @@
-import {Request as NodeRequest, Response as NodeResponse} from 'node-fetch';
+import {
+    HeadersInit as NodeHeadersInit,
+    Request as NodeRequest,
+    Response as NodeResponse,
+} from 'node-fetch';
 
-export type IsomorphicResponse = Response | NodeResponse
-export type IsomorphicRequest = Request | NodeRequest
+export type IsoResponse = Response | NodeResponse
+export type IsoRequest = Request | NodeRequest
+export type IsoHeaders = HeadersInit | NodeHeadersInit
