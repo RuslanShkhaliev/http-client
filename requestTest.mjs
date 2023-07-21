@@ -33,7 +33,21 @@ const isoHttp = createInstance({
     cacheService: cache,
 })
 
-const user = await isoHttp(`/todos/75`, {cache: {key: 75, expire: 13300}}).execute()
-const user1 = await isoHttp(`/todos/75`, {cache: {key: 75, expire: 13300}}).execute()
-console.log(user.data, await user.response.json())
-console.log(user1.data, await user1.response.json())
+await isoHttp(`/todo/75`, {cache: {key: 75, expire: 13300}, hooks: {
+    afterResponse: [
+        (request, config, response) => {
+            console.log('response', request.status, response.status)
+        }
+    ],
+            //beforeError: [
+            //    (err) => {
+            //        console.log(err)
+            //    }
+            //],
+            //beforeRequest: [
+            //    (request, config) => {
+            //        console.log(config)
+            //    }
+            //]
+    }} ).execute()
+.catch((err) => {})
