@@ -163,9 +163,9 @@ export class HttpClient {
 
             for (const hook of context.hooks.afterResponse) {
                 const modifiedResponse = await hook(
+                    response.clone(),
                     context.request,
                     context.config,
-                    response.clone(),
                 );
 
                 if (modifiedResponse instanceof globalThis.Response) {
