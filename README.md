@@ -30,7 +30,7 @@
 ```ts
 import httpClient from 'http-client';
 
-const data = await httpClient('https://jsonplaceholder.typicode.com/todos/1').execute()
+const {data, response} = await httpClient('https://jsonplaceholder.typicode.com/todos/1').execute()
 
 console.log(data)
 // =>
@@ -45,16 +45,13 @@ console.log(data)
 ```ts
 import httpClient from 'http-client';
 
-const {execute, abort} = httpClient('https://jsonplaceholder.typicode.com/todos/1')
-
-setTimeout(abort, 5000)
-
-try {
-    await execute()
-} catch(err) {
-    console.log(err)
-}
-// => CanceledRequest: Запрос был отменен
+// Отмена запроса
+const {execute, cancelRequest} = httpClient('https://jsonplaceholder.typicode.com/todos/1')
+execute()
+.catch((err) => {
+    console.log(err)// => CanceledRequest error
+})
+cancelRequest()
 
 ```
 ## API
@@ -65,7 +62,7 @@ try {
 import {createInstance} from 'http-client'
 
 const httpClient = createInstance({
-    baseUrl: 'http://example.com',
+    baseUrl: 'https://example.com',
     headers,
 })
 
@@ -91,12 +88,12 @@ const newHttpModule = httpClient.create({
 import {createInstance} from 'http-client'
 
 const httpClient = createInstance({
-    baseUrl: 'http://example.com'
+    baseUrl: 'https://example.com'
 })
 
 await httpClient('/home').execute()
 
-// => http://example.com/home
+// baseUrl => https://example.com/home
 
 const webApiHttp = httpClient.extend({prefix: '/web-api'})
 
@@ -106,18 +103,6 @@ await webApiHttp('/home').execute()
 
 ```
 
-### httpClient.hooks[beforeRequest, afterResponse, beforeError]
-
-Статический метод который дает возможность добавить или удалить хук
-Добавляет новый хук в массив хуков переданных при инициализации клиента, но до хуков конкретного запроса.
-
-```ts
-httpClient.hooks.afterResponse.use(tokenHook)
-httpClient.hooks.afterResponse.remove(loggerHook)
-
-```
-
-
 ### Опции инстанса
 
 #### fetch
@@ -125,11 +110,6 @@ httpClient.hooks.afterResponse.remove(loggerHook)
 По умолчанию: `node-fetch` на сервере, `fetch` на клиенте
 
 Пользовательская fetch функция. Должна быть совместима со стандартом [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
-
-#### logger
-Тип `ILogger`\
-Примечание:
-- необязательный параметр
 
 #### cacheService
 Тип `CacheService`\
@@ -146,15 +126,11 @@ httpClient.hooks.afterResponse.remove(loggerHook)
 import {createInstance} from 'http-client'
 
 const httpClient = createInstance({ baseUrl: 'https://example.com'})
-const data = await httpClient('/getSports'}).execute()
+const data = await httpClient('/getSports').execute()
 
 // => 'https://example.com/getSpors'
 
 ```
-
-Примечание:
-- Начальные слеши `url` обязательны, это обеспечивает согласованность и помогает избегать путаницы в отношении того, как обрабатывается URL-адрес.
-
 
 ### Опции запроса
 
@@ -209,22 +185,16 @@ const abortController = new AbortController()
 
 const {signal} = abortController
 
-setTimeout(() => {
-    controller.abort()
-}, 5000)
-
-try {
-    await httpClient(url, {signal})
-} catch(err) {
-    // if (err.name === 'CanceledRequest') {
-    //     console.log(err.message)
-    // }
+controller.abort()
+await httpClient(url, {signal})
+.catch((err) => {
     if (err instanceof CanceledRequest) {
         console.log(err.message)
     } else {
-        console.error('Ошибка запроса:', error)
+        ...
     }
-}
+})
+
 // => CanceledRequest: Запрос был отменен
 
 ```
@@ -247,10 +217,10 @@ httpClient создает `AbortController` для каждого запроса
 По умолчанию:
 ```ts
 {
-    request: object,
-    response: Response | null,
-    data: any,
-    error: HTTPError | null,
+    request: RequestOptions,
+    response: Response,
+    config: RequestConfig,
+    error: HTTPError,
 }
 ```
 
@@ -267,7 +237,7 @@ import httpClient from 'http-client'
 const api = httpClient.extend({
     hooks: {
         beforeRequest: [
-            ({request}, _cancel) => {
+            (request) => {
                 request.headers['X-Requested-With'] = 'httpClient'
             }
         ]
