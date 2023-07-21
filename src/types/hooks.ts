@@ -1,8 +1,9 @@
 import {HTTPError} from '../errors';
-import {RequestContext} from './request';
+import {IsoRequest, IsoResponse} from './globals';
+import {Request, RequestConfig} from './options';
 
-export type BeforeRequestHook = (ctx: RequestContext, cancel: () => void) => Promise<void> | void
-export type AfterResponseHook = (ctx: RequestContext) => Promise<void> | void
+export type BeforeRequestHook = (request: IsoRequest, config: RequestConfig) => IsoRequest | IsoResponse | void | Promise<IsoRequest | IsoResponse | void>;
+export type AfterResponseHook = (request: Request, config: RequestConfig, response: IsoResponse) => IsoResponse | void | Promise<IsoResponse | void>;
 export type BeforeErrorHook = (error: HTTPError) => HTTPError | Promise<HTTPError>
 
 export interface Hooks {

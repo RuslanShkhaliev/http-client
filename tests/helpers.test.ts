@@ -1,4 +1,4 @@
-import {composeURL, getUrlWithParams} from '../src/helpers';
+import {combineURL, getUrlWithQuery} from '../src/helpers';
 
 describe('Проверяем функции хелперы', () => {
     describe('composeURL', () => {
@@ -79,8 +79,8 @@ describe('Проверяем функции хелперы', () => {
                 args: ['/', undefined, '/home'],
                 expected: '/home',
             },
-        ])('объединяет baseURL и url, создавая новый url', ({args, expected}) => {
-            expect(composeURL(...args as [baseUrl: string, prefixUrl: string, url: string])).toBe(expected);
+        ])('объединяет baseUrl и url, создавая новый url', ({args, expected}) => {
+            expect(combineURL(...args as [baseUrl: string, prefix: string, url: string])).toBe(expected);
         });
     });
 
@@ -95,13 +95,14 @@ describe('Проверяем функции хелперы', () => {
             'filter=desc&page=4',
         ])('должен объеденить параметры с url', (params) => {
             // @ts-ignore
-            expect(getUrlWithParams(url, params)).toBe(urlWithParams);
+            expect(getUrlWithQuery(url, params)).toBe(urlWithParams);
         });
 
         it('должен переопределить параметры в url', () => {
             const url = 'https://example.com?page=4';
+            const queryParams = {page: 3};
 
-            expect(getUrlWithParams(url, {page: 3})).toBe('https://example.com?page=3');
+            expect(getUrlWithQuery(url, queryParams)).toBe('https://example.com?page=3');
         });
     });
 

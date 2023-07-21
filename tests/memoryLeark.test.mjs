@@ -1,5 +1,32 @@
 // @ts-nocheck
-import httpModule from '../dist/index.js'
+import {createInstance} from '../dist/esm/server.mjs';
+
+
+class CacheService {
+    cache = new Map()
+    async set(key, val, expire) {
+        this.cache.set(key, val)
+        if (expire) {
+            let timer = setTimeout(() => {
+                this.cache.delete(key)
+                clearTimeout(timer)
+                timer = null
+            }, expire)
+        }
+
+        return this
+    }
+    async get(key) {
+        const data = this.cache.get(key)
+        if (data) {
+            data.data.isCached = true
+        }
+        return Promise.resolve(data)
+    }
+    get size() {
+        return this.cache.size
+    }
+}
 
 const bytesToMb = (bytes) => +(Math.round(bytes / 1000) / 1000).toFixed(2);
 const printAnalysis = (timer, processMs = 10000) => {
@@ -27,58 +54,30 @@ const printAnalysis = (timer, processMs = 10000) => {
 };
 
 // имитируем 4 разных клиента под разные задачи
-const cacheService = new Map();
-
-const fetchClient = httpModule.create({
-    logger: console,
-    cacheService,
+const cacheService = new CacheService();
+const fetchClient = createInstance({
+    baseUrl: 'https://jsonplaceholder.typicode.com'
 })
 
-const queue = [1, 1, 1, 1, 1];
-const request = async () => {
-    for await (const execute of queue) {
-        const response = await fetchClient(`https://jsonplaceholder.typicode.com/todos/${Math.floor(Math.random() * 10)}`, {}, {cache: {key: 1}}).execute();
-        const data = response.json();
 
-        console.log(data);
-    }
-};
+ {
+    // тест с исполнением запроса
+    let k = 0
+    const timer = setInterval(async () => {
+        try {
+            // генерируем ключ для доступа к апи из коллекции
+            await fetchClient(`/todos/${k++}`).execute()
+            console.log('load')
+        } catch(err) {
+            console.log({err, k}, 'err')
+        }
+    }, 500)
+    printAnalysis(timer, 30000)
 
-request();
-setTimeout(() => {
-    console.log(cacheService);
-}, 3000);
 
-//
-// {
-//    // тест с исполнением запроса
-//    let k = 0
-//    const timer = setInterval(async () => {
-//        try {
-//            // генерируем ключ для доступа к апи из коллекции
-//            await fetchClient(`https://jsonplaceholder.typicode.com/todos/${k + 1}`, {}, {cache: { cacheKey: Date.now() + Math.random()}}).execute()
-//        } catch(err) {
-//            console.log(err, 'err')
-//        }
-//    })
-//    printAnalysis(timer, 30000)
-//
-//
-//    setTimeout(() => {
-//        console.log(cacheService.size)
-//        process.exit(0)
-//    }, 65000)
-// }
+    setTimeout(() => {
+        console.log(cacheService.size)
+        process.exit(0)
+    }, 65000)
+ }
 
-// {
-//    const timer = setInterval(() => {
-//        try {
-//            const apiKey = randomFrom(api)
-//            api[apiKey](`https://jsonplaceholder.typicode.com/todos/${apiKey + 1}`)
-//        } catch(err) {
-//
-//        }
-//    }, 5)
-//
-//    printAnalysis(timer, 150000)
-// }

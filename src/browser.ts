@@ -1,41 +1,30 @@
-import {fetchWrapper} from './fetchWrapper';
+import {HttpClient} from './FetchClient';
+import {assert, deepMerge} from './helpers';
 import {
-    assert,
-    deepMerge,
-    defineHooks,
-    normalizeOptions,
-} from './helpers';
-import {
-    Config,
+    CreateInstanceOptions,
     HTTPClient,
-    InitOptions,
-    Options,
+    InstanceOptions,
+    RequestOptions,
 } from './types';
 
-export const createInstance = (initOptions: InitOptions) => {
-    const normalizedOptions = {
-        ...normalizeOptions(initOptions),
-        fetch: initOptions?.fetch ?? window.fetch.bind(window),
-    };
+export const createInstance = (initOptions: Partial<CreateInstanceOptions> = {}) => {
+    initOptions.fetch ??= globalThis.fetch.bind(globalThis);
 
-    assert(typeof normalizedOptions.fetch === 'function', 'fetch обязательное поле');
+    assert(typeof initOptions.fetch === 'function', 'fetch обязательное поле');
 
-    const httpClient = <T>(
-        url: string,
-        options?: Options,
-    ) => fetchWrapper<T>(url, deepMerge(normalizedOptions as Config, options as Config));
+    const IsoHttpClientInstance = HttpClient.initialize(initOptions as CreateInstanceOptions);
 
-    httpClient.create = (newInitOptions: InitOptions) => createInstance(newInitOptions);
-    // @ts-ignore
-    httpClient.extend = (newInitOptions?: Partial<InitOptions>) => createInstance(deepMerge(normalizedOptions, newInitOptions));
-    httpClient.hooks = defineHooks(normalizedOptions.hooks);
+    const isoHttpClient = (url: string, options: RequestOptions = {}) => IsoHttpClientInstance.request(url, options);
 
-    return httpClient;
+    isoHttpClient.create = (newOptions: Partial<CreateInstanceOptions> = {}) => createInstance(newOptions);
+    isoHttpClient.extend = (newOptions: Partial<CreateInstanceOptions> = {}) => createInstance(deepMerge(initOptions, newOptions));
+
+    return isoHttpClient;
 };
 
 export * from './errors';
 export type {
-    InitOptions,
-    Options,
+    InstanceOptions,
+    RequestOptions,
     HTTPClient,
 };

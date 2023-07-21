@@ -1,8 +1,8 @@
 // eslint-disable-next-line max-classes-per-file
 import {
-    FetchRequest,
-    IsoRequest,
     IsoResponse,
+    Request,
+    RequestConfig,
 } from './types';
 
 export class HTTPError extends Error {
@@ -15,38 +15,50 @@ export class HTTPError extends Error {
 
     public response: IsoResponse;
 
-    public request: FetchRequest;
+    public config: RequestConfig;
+
+    public request: Request;
 
     public statusCode?: number | string;
 
-    constructor(response: IsoResponse, request: FetchRequest) {
-        const code = (response.status ?? response.status === 0) ? response.status : '';
+    constructor(response: IsoResponse, request: Request, config: RequestConfig) {
+        const code = (response.status || response.status === 0) ? response.status : '';
+        const title = response.statusText || '';
+        const status = `${code} ${title}`.trim();
+        const reason = status ? `status code ${status}` : 'an unknown error';
 
-        super();
+        super(`Request failed with ${reason}`);
 
         this.name = HTTPError.CLIENT_ERRORS_BY_STATUS[code] ?? 'HTTPError';
         this.response = response;
         this.request = request;
         this.statusCode = code;
+        this.config = config;
     }
 }
 
 export class TimeoutError extends Error {
     public request: Request;
 
-    constructor(request: any) {
-        super('Истекло время запроса');
+    public config?: RequestConfig;
+
+    constructor(request: Request, config?: RequestConfig) {
+        super('Request Timeout');
         this.name = 'TimeoutError';
         this.request = request;
+        this.config = config;
     }
 }
-export class CancelRequest extends Error {
-    public request: IsoRequest;
+export class CanceledRequest extends Error {
+    public request: Request;
 
-    constructor(request: any) {
-        super('Запрос был отменен');
-        this.name = 'CancelRequest';
+    public config?: RequestConfig;
+
+    constructor(request: Request, config?: RequestConfig) {
+        super('request was cancelled');
+        this.name = 'CanceledRequest';
         this.request = request;
+        this.config = config;
     }
 }
 export class InvalidUrl extends Error {
@@ -55,5 +67,5 @@ export class InvalidUrl extends Error {
 export type ErrorType =
     HTTPError |
     TimeoutError |
-    CancelRequest |
+    CanceledRequest |
     InvalidUrl

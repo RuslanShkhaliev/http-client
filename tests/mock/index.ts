@@ -1,24 +1,26 @@
-import {CacheService} from '../../src/types';
+export class CacheService {
+    cache = new Map();
 
-export const createMockCacheService = (shouldThrowError?: boolean): CacheService => {
-    const cache = new Map();
+    async set(key: string, val: any, expire?: number) {
+        this.cache.set(key, val);
+        if (expire) {
+            let timer: any = setTimeout(() => {
+                this.cache.delete(key);
+                clearTimeout(timer);
+                timer = null;
+            }, expire);
+        }
 
-    return {
-        set(key: string, value: any, exp?: number) {
-            if (shouldThrowError) {
-                throw new Error('ошибка сохранения в кеш');
-            }
-            cache.set(key, value);
+        return this;
+    }
 
-            return Promise.resolve();
-        },
-        get(key: string) {
-            return new Promise((res, rej) => {
-                if (shouldThrowError) {
-                    rej(new Error('ошибка чтения из кеша'));
-                }
-                res(cache.get(key));
-            });
-        },
-    };
-};
+    get(key: string) {
+        const data = this.cache.get(key);
+
+        if (data) {
+            data.data.isCached = true;
+        }
+
+        return data;
+    }
+}
