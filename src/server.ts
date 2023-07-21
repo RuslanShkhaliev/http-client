@@ -5,12 +5,12 @@ import nodeFetch, {
     Request,
     Response,
 } from 'node-fetch';
-import {HttpClient} from './FetchClient';
 import {assert, deepMerge} from './helpers';
 import {isServer} from './helpers/is';
+import {HttpClient} from './httpClient';
 import {
     CreateInstanceOptions,
-    HTTPClient,
+    HTTPClientInstance,
     InstanceOptions,
     RequestOptions,
 } from './types';
@@ -22,7 +22,7 @@ const createKeepAliveAgent = () => {
     return (url: URL) => (url.protocol === 'https:' ? httpsAgent : httpAgent);
 };
 
-export const createInstance = (initOptions: Partial<CreateInstanceOptions> = {}) => {
+export const createInstance = (initOptions: Partial<CreateInstanceOptions> = {}): HTTPClientInstance => {
     if (!globalThis.Request) {
         Object.assign(globalThis, {Request});
     }
@@ -57,5 +57,5 @@ export * from './errors';
 export type {
     InstanceOptions,
     RequestOptions,
-    HTTPClient,
+    HTTPClientInstance,
 };

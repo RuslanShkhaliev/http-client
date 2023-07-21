@@ -1,13 +1,13 @@
-import {HttpClient} from './FetchClient';
 import {assert, deepMerge} from './helpers';
+import {HttpClient} from './httpClient';
 import {
     CreateInstanceOptions,
-    HTTPClient,
+    HTTPClientInstance,
     InstanceOptions,
     RequestOptions,
 } from './types';
 
-export const createInstance = (initOptions: Partial<CreateInstanceOptions> = {}) => {
+export const createInstance = (initOptions: Partial<CreateInstanceOptions> = {}): HTTPClientInstance => {
     initOptions.fetch ??= globalThis.fetch.bind(globalThis);
 
     assert(typeof initOptions.fetch === 'function', 'fetch обязательное поле');
@@ -26,5 +26,5 @@ export * from './errors';
 export type {
     InstanceOptions,
     RequestOptions,
-    HTTPClient,
+    HTTPClientInstance,
 };

@@ -1,17 +1,15 @@
-import {
-    AfterResponseHook,
-    BeforeErrorHook,
-    BeforeRequestHook,
-} from './hooks';
-import {InstanceOptions, RequestOptions} from './options';
+import {IsoResponse} from './globals';
+import {CreateInstanceOptions} from './options';
+import {RequestOptions} from './request';
 
-export type HTTPClient = {
-    <T=any>(url: string, options?: RequestOptions): {abort: () => void; execute: () => Promise<T>}
-    create(newInitConfig: InstanceOptions): HTTPClient
-    extend(newInitConfig?: Partial<InstanceOptions>): HTTPClient
-    hooks: {
-        beforeError: {use: (hook: BeforeErrorHook) => BeforeErrorHook; remove: (hook: BeforeErrorHook) => void}
-        beforeRequest: {use: (hook: BeforeRequestHook) => BeforeRequestHook; remove: (hook: BeforeRequestHook) => void}
-        afterResponse: {use: (hook: AfterResponseHook) => AfterResponseHook; remove: (hook: AfterResponseHook) => void}
+export type HTTPClientInstance = {
+    <T = unknown>(url: string, options?: RequestOptions): {
+        cancelRequest: () => void
+        execute: () => Promise<{
+            data: T
+            response: IsoResponse
+        }>
     }
+    create(newOptions?: Partial<CreateInstanceOptions>): HTTPClientInstance
+    extend(newOptions?: Partial<CreateInstanceOptions>): HTTPClientInstance
 }

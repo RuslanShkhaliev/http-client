@@ -1,9 +1,5 @@
 import {
-    AfterResponseHook,
-    BeforeErrorHook,
-    BeforeRequestHook,
     HeadersInit,
-    Hooks,
     SearchParamsInit,
     SearchParamsOption,
 } from '../types';
@@ -14,12 +10,6 @@ export function assert(condition: any, msg?: string): asserts condition {
         throw new Error(String(msg));
     }
 }
-
-export const startTimer = () => {
-    const init = Date.now();
-
-    return () => Date.now() - init;
-};
 
 export const isAbsolute = (url: string) => /^(http|https):\/\//.test(url);
 
@@ -95,19 +85,6 @@ export const deepMerge = <T>(...sources: Array<Partial<T> | undefined>): T => {
     return returnValue;
 };
 
-export const setUseMethod = <T>(hooks: T[]) => (hook: T): T => {
-    hooks.push(hook);
-
-    return hook;
-};
-export const setRemoveHook = <T>(hooks: T[]) => (hook: T): void => {
-    const index = hooks.indexOf(hook);
-
-    if (hook) {
-        hooks.splice(index, 1);
-    }
-};
-
 export const getQuery = (input: string, ...queries: string[]): Record<string, string | null> => {
     const originalQueries = new URLSearchParams(input.replace(/.+\?/, ''));
 
@@ -116,18 +93,3 @@ export const getQuery = (input: string, ...queries: string[]): Record<string, st
         [key]: originalQueries.get(key),
     }), {});
 };
-
-export const defineHooks = (hooks: Required<Hooks>) => ({
-    beforeRequest: {
-        use: setUseMethod<BeforeRequestHook>(hooks.beforeRequest),
-        remove: setRemoveHook<BeforeRequestHook>(hooks.beforeRequest),
-    },
-    afterResponse: {
-        use: setUseMethod<AfterResponseHook>(hooks.afterResponse),
-        remove: setRemoveHook<AfterResponseHook>(hooks.afterResponse),
-    },
-    beforeError: {
-        use: setUseMethod<BeforeErrorHook>(hooks.beforeError),
-        remove: setRemoveHook<BeforeErrorHook>(hooks.beforeError),
-    },
-});

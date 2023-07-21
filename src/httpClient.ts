@@ -121,7 +121,7 @@ export class HttpClient {
             hooks,
         };
 
-        const execute = async () => {
+        const execute = async (): Promise<{data: any; response: IsoResponse}> => {
             if (this.cacheService && config.cache?.key !== undefined) {
                 const data = await this.cacheService?.get(config.cache.key);
 
