@@ -1,5 +1,8 @@
 export interface CacheService {
     set: (key: string, val: any, expire?: number) => Promise<void>
-    get: (key: string) => Promise<any>
+    get: <T = any>(key: string) => Promise<T>
 }
-export type LoggerService = any
+export interface LoggerService {
+    log: (...args: any[]) => void
+    trace: (...args: any[]) => void
+}

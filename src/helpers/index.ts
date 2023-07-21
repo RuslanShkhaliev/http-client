@@ -2,9 +2,10 @@ import {
     AfterResponseHook,
     BeforeErrorHook,
     BeforeRequestHook,
+    HeadersInit,
     Hooks,
-    InitOptions,
-    SearchParams,
+    SearchParamsInit,
+    SearchParamsOption,
 } from '../types';
 import {isObject} from './is';
 
@@ -22,10 +23,14 @@ export const startTimer = () => {
 
 export const isAbsolute = (url: string) => /^(http|https):\/\//.test(url);
 
-export const composeURL = (...urls: [baseUrl: string, prefixUrl: string, url: string]) => {
-    const [,, urlPath] = urls;
+export const combineURL = (...urls: [baseUrl: string, prefix: string, url: string]) => {
+    const [, prefix, urlPath] = urls;
 
-    if (isAbsolute(urlPath)) {
+    if (isAbsolute(urlPath) && !isAbsolute(prefix)) {
+        const prefixUrl = prefix.length ? `/${prefix}` : '';
+
+        return `${urlPath}${prefixUrl}`.replace(/(\/\/) | (\/\$)/g, '/');
+    } if (isAbsolute(urlPath)) {
         return urlPath;
     }
     const resultUrl = urls
@@ -35,20 +40,33 @@ export const composeURL = (...urls: [baseUrl: string, prefixUrl: string, url: st
 
     return isAbsolute(resultUrl) ? resultUrl : `/${resultUrl}`;
 };
-export const getUrlWithParams = (url: string, params: SearchParams) => {
-    const textSearchParams = new URLSearchParams(params as unknown as URLSearchParams).toString();
+export const getUrlWithQuery = (url: string, searchParams: SearchParamsOption) => {
+    const textSearchParams = typeof searchParams === 'string'
+        ? searchParams.replace(/^\?/, '')
+        : new URLSearchParams(searchParams as SearchParamsInit).toString();
 
-    const searchParams = '?' + textSearchParams;
-
-    return url.replace(/(?:\?.*?)?(?=#|$)/, searchParams);
+    return url.replace(/(?:\?.*?)?(?=#|$)/, '?' + textSearchParams);
 };
 
-type IObject = {
-    [key: string]: any
-}
+export const mergeHeaders = (h1: HeadersInit = {}, h2: HeadersInit = {}) => {
+    const result = new globalThis.Headers(h1 as any);
+    const isHeadersInstance = h2 instanceof globalThis.Headers;
+    const source = new globalThis.Headers(h2 as any);
 
-export const deepMerge = <T extends Partial<IObject>>(...sources: (Partial<T> | undefined)[]): T => {
+    for (const [key, value] of source.entries()) {
+        if ((isHeadersInstance && value === 'undefined') || value === undefined) {
+            result.delete(key);
+        } else {
+            result.set(key, value);
+        }
+    }
+
+    return result;
+};
+
+export const deepMerge = <T>(...sources: Array<Partial<T> | undefined>): T => {
     let returnValue: any = {};
+    let headers = {};
 
     for (const source of sources) {
         if (Array.isArray(source)) {
@@ -65,6 +83,11 @@ export const deepMerge = <T extends Partial<IObject>>(...sources: (Partial<T> | 
                 }
 
                 returnValue = {...returnValue, [key]: value};
+            }
+
+            if (isObject((source as any).headers)) {
+                headers = mergeHeaders(headers, (source as any).headers);
+                returnValue.headers = headers;
             }
         }
     }
@@ -93,22 +116,6 @@ export const getQuery = (input: string, ...queries: string[]): Record<string, st
         [key]: originalQueries.get(key),
     }), {});
 };
-
-export const normalizeOptions = (options: InitOptions) => ({
-    ...options,
-    baseUrl: options.baseUrl ?? '',
-    prefixUrl: options.prefixUrl ?? '',
-    hooks: deepMerge(
-        {
-            beforeRequest: [],
-            afterResponse: [],
-            beforeError: [],
-        },
-        options.hooks,
-    ),
-    headers: options.headers ?? {},
-    keepalive: true,
-});
 
 export const defineHooks = (hooks: Required<Hooks>) => ({
     beforeRequest: {

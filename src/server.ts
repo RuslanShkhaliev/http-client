@@ -1,18 +1,18 @@
 import http from 'http';
 import https from 'https';
-import nodeFetch from 'node-fetch';
-import {fetchWrapper} from './fetchWrapper';
+import nodeFetch, {
+    Headers,
+    Request,
+    Response,
+} from 'node-fetch';
+import {HttpClient} from './FetchClient';
+import {assert, deepMerge} from './helpers';
+import {isServer} from './helpers/is';
 import {
-    assert,
-    deepMerge,
-    defineHooks,
-    normalizeOptions,
-} from './helpers';
-import {
-    Config,
+    CreateInstanceOptions,
     HTTPClient,
-    InitOptions,
-    Options,
+    InstanceOptions,
+    RequestOptions,
 } from './types';
 
 const createKeepAliveAgent = () => {
@@ -22,31 +22,40 @@ const createKeepAliveAgent = () => {
     return (url: URL) => (url.protocol === 'https:' ? httpsAgent : httpAgent);
 };
 
-export const createInstance = (initOptions: InitOptions) => {
-    const normalizedOptions = {
-        ...normalizeOptions(initOptions || {}),
-        fetch: initOptions?.fetch ?? nodeFetch,
-        agent: createKeepAliveAgent(),
+export const createInstance = (initOptions: Partial<CreateInstanceOptions> = {}) => {
+    if (!globalThis.Request) {
+        Object.assign(globalThis, {Request});
+    }
+    if (!globalThis.Headers) {
+        Object.assign(globalThis, {Headers});
+    }
+    if (!globalThis.Response) {
+        Object.assign(globalThis, {Response});
+    }
+
+    initOptions.fetch ??= typeof globalThis.fetch === 'function' ? globalThis.fetch.bind(globalThis) : nodeFetch;
+
+    assert(typeof initOptions.fetch === 'function', 'fetch обязательное поле');
+
+    const IsoHttpClientInstance = HttpClient.initialize(initOptions as CreateInstanceOptions);
+
+    const isoHttpClient = (url: string, options: RequestOptions = {}) => {
+        if (isServer) {
+            options.agent = createKeepAliveAgent();
+        }
+
+        return IsoHttpClientInstance.request(url, options);
     };
 
-    assert(typeof normalizedOptions.fetch === 'function', 'fetch обязательное поле');
-    const httpClient = <T>(
-        url: string,
-        options?: Options,
-    ) => // @ts-ignore
-        // eslint-disable-next-line implicit-arrow-linebreak
-            fetchWrapper<T>(url, deepMerge(normalizedOptions as unknown as Config, options));
+    isoHttpClient.create = (newOptions: Partial<CreateInstanceOptions> = {}) => createInstance(newOptions);
+    isoHttpClient.extend = (newOptions: Partial<CreateInstanceOptions> = {}) => createInstance(deepMerge(initOptions, newOptions));
 
-    httpClient.create = (newInitOptions: InitOptions) => createInstance(newInitOptions);
-    httpClient.extend = (newInitOptions?: Partial<InitOptions>) => createInstance(deepMerge(normalizedOptions as unknown as Config, newInitOptions));
-    httpClient.hooks = defineHooks(normalizedOptions.hooks);
-
-    return httpClient;
+    return isoHttpClient;
 };
 
 export * from './errors';
 export type {
-    InitOptions,
-    Options,
+    InstanceOptions,
+    RequestOptions,
     HTTPClient,
 };

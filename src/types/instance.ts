@@ -3,12 +3,12 @@ import {
     BeforeErrorHook,
     BeforeRequestHook,
 } from './hooks';
-import {InitOptions, Options} from './options';
+import {InstanceOptions, RequestOptions} from './options';
 
 export type HTTPClient = {
-    <T=any>(url: string, options?: Options): {abort: () => void; execute: () => Promise<T>}
-    create(newInitConfig: InitOptions): HTTPClient
-    extend(newInitConfig?: Partial<InitOptions>): HTTPClient
+    <T=any>(url: string, options?: RequestOptions): {abort: () => void; execute: () => Promise<T>}
+    create(newInitConfig: InstanceOptions): HTTPClient
+    extend(newInitConfig?: Partial<InstanceOptions>): HTTPClient
     hooks: {
         beforeError: {use: (hook: BeforeErrorHook) => BeforeErrorHook; remove: (hook: BeforeErrorHook) => void}
         beforeRequest: {use: (hook: BeforeRequestHook) => BeforeRequestHook; remove: (hook: BeforeRequestHook) => void}

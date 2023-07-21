@@ -1,38 +1,81 @@
-import {FetchClient, SearchParams} from './common';
+import {
+    IsoFetch,
+    IsoHeaders,
+    IsoRequestInit,
+} from './globals';
 import {Hooks} from './hooks';
-import {CacheService, LoggerService} from './services';
+import {CacheService} from './services';
 
-type CommonOptions = {
-    prefixUrl?: string
-    redirect?: string
-    method?: string
-    headers?: Record<string, any>
-    timeout?: number
-    credentials?: 'include' | 'omit' | 'same-origin'
-    hooks?: Hooks
-    keepalive?: boolean
+export type HeadersInit = IsoHeaders | Record<string, string | undefined>
+
+export enum HTTP_METHODS {
+    GET = 'GET',
+    POST = 'POST',
+    PUT = 'PUT',
+    DELETE = 'DELETE'
 }
-export type InitOptions = CommonOptions & {
+
+export type CacheOptions = {
+    key: string
+    expire: number
+}
+export type TimerType = {
+    value: any
+}
+
+type Timeout = number | null
+
+export type SearchParamsInit = string | string[][] | Record<string, string> | URLSearchParams | undefined;
+export type SearchParamsOption = SearchParamsInit | Record<string, string | number | boolean> | Array<Array<string | number | boolean>>;
+
+export interface CreateInstanceOptions {
+    fetch: IsoFetch
     baseUrl?: string
-    fetch?: FetchClient
-    agent?: null
-    cacheService?: CacheService | null
+    timeout?: Timeout
+    hooks?: Hooks
+    headers?: IsoHeaders
+    cacheService?: CacheService
 }
 
-export type Options = CommonOptions & {
-    signal?: AbortSignal | null
-    body?: any
-    params?: SearchParams
-    trace?: boolean
-    cache?: {
-        key: string
-        expire?: number
-    }
-}
-export type Config = Omit<InitOptions, 'fetch'> & Omit<Options, 'fetch'> & Required<{
+export type NormalizedOptions = CreateInstanceOptions & {
     baseUrl: string
-    prefixUrl: string
-    fetch: FetchClient
+    timeout: Timeout
     hooks: Required<Hooks>
-    logger: LoggerService
-}>
+}
+
+export type RequestOptions = IsoRequestInit & {
+    prefix?: string
+    query?: SearchParamsOption
+    timeout?: Timeout
+    credentials?: 'include' | 'omit' | 'same-origin'
+    agent?: any
+    trace?: boolean
+    cache?: CacheOptions
+    hooks?: Hooks
+}
+
+export type InstanceOptions = Omit<NormalizedOptions, 'hooks' | 'cacheService'>
+
+export type RequestConfig = {
+    baseUrl: string
+    prefix: string
+    query?: SearchParamsOption
+    cache?: CacheOptions
+    trace: boolean
+}
+
+export type Request = {
+    url: string
+    headers: IsoHeaders
+    timeout: Timeout
+    method: string
+    credentials: string
+    body: any
+    signal: AbortSignal
+}
+
+export type RequestContext = {
+    request: Request
+    config: RequestConfig
+    hooks: Required<Hooks>
+}

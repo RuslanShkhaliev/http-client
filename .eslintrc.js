@@ -32,6 +32,7 @@ module.exports = {
         'no-param-reassign': 'off',
         'no-plusplus': 'off',
         'no-redeclare': 'off',
+        'no-underscore-dangle': 'off',
         'no-restricted-syntax': [
             'error',
             'ForInStatement',

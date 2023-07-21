@@ -54,7 +54,7 @@ try {
 } catch(err) {
     console.log(err)
 }
-// => CancelRequest: Запрос был отменен
+// => CanceledRequest: Запрос был отменен
 
 ```
 ## API
@@ -98,7 +98,7 @@ await httpClient('/home').execute()
 
 // => http://example.com/home
 
-const webApiHttp = httpClient.extend({prefixUrl: '/web-api'})
+const webApiHttp = httpClient.extend({prefix: '/web-api'})
 
 await webApiHttp('/home').execute()
 
@@ -162,7 +162,7 @@ const data = await httpClient('/getSports'}).execute()
 Тип: `string`\
 По умолчанию: `'get'`
 
-#### params
+#### query
 Тип: `string[][] | Record<string, string | number> | string | URLSearchParams`\
 По умолчанию: `''`
 
@@ -170,7 +170,7 @@ const data = await httpClient('/getSports'}).execute()
 
 Принимает любое значение, поддерживаемое URLSearchParams().
 
-#### prefixUrl
+#### prefix
 
 Тип: `string`\
 По умолчанию: `''`
@@ -182,9 +182,9 @@ const data = await httpClient('/getSports'}).execute()
 ```js
 import {createInstance} from 'http-client'
 
-const httpClient = createInstance({baseUrl: 'https://example.com', prefixUrl: '/api/v2'})
+const httpClient = createInstance({baseUrl: 'https://example.com', prefix: '/api/v2'})
 
-const webApiHttp = httpClient.extends({prefixUrl: '/web-api'})
+const webApiHttp = httpClient.extends({prefix: '/web-api'})
 
 const response = await webApiHttp('getSports')
 
@@ -203,7 +203,7 @@ const response = await webApiHttp('getSports')
 `Fetch` (и, следовательно, `httpClient`) имеет встроенную поддержку отмены запросов через [AbortController Api](https://developer.mozilla.org/en-US/docs/Web/API/AbortController)
 
 ```ts
-import httpClient, {CancelRequest} from 'http-client'
+import httpClient, {CanceledRequest} from 'http-client'
 
 const abortController = new AbortController()
 
@@ -216,16 +216,16 @@ setTimeout(() => {
 try {
     await httpClient(url, {signal})
 } catch(err) {
-    // if (err.name === 'CancelRequest') {
+    // if (err.name === 'CanceledRequest') {
     //     console.log(err.message)
     // }
-    if (err instanceof CancelRequest) {
+    if (err instanceof CanceledRequest) {
         console.log(err.message)
     } else {
         console.error('Ошибка запроса:', error)
     }
 }
-// => CancelRequest: Запрос был отменен
+// => CanceledRequest: Запрос был отменен
 
 ```
 
